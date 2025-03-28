@@ -74,20 +74,23 @@
             return base.Withdraw(amount + WithdrawalFee);
         }
     }
-    public class TrustAccount : SavingsAccount
+    
+     public class TrustAccount : SavingsAccount
     {
-        public const double BonusAmount = 50.0;
-        public const int MaxYear = 3;
-        public const double MaxPercent = 0.2;
-        public int ThisYear = 0;
-        public const double Threshold = 5000.0;
+        private const double BonusAmount = 50.0;
+        private const int MaxWithdrawalsPerYear = 3;
+        private const double MaxWithdrawalPercent = 0.2;
+        private const double Threshold = 5000.0;
 
-        public TrustAccount(string name = "Unnamed ", double balance = 0.0, double interestRate = 0.0)
+        private int withdrawalCountThisYear = 0;
+        private int currentYear = DateTime.Now.Year;
+
+        public TrustAccount(string name = "Unnamed", double balance = 0.0, double interestRate = 0.0)
             : base(name, balance, interestRate)
         {
         }
 
-        public  new bool Deposit(double amount)
+        public new bool Deposit(double amount)
         {
             if (amount >= Threshold)
                 Balance += BonusAmount;
@@ -96,11 +99,19 @@
 
         public new bool Withdraw(double amount)
         {
-            if (ThisYear >= MaxYear || amount > Balance * MaxPercent)
+            int yearNow = DateTime.Now.Year;
+            if (yearNow != currentYear)
+            {
+                currentYear = yearNow;
+                withdrawalCountThisYear = 0;
+            }
+
+            if (withdrawalCountThisYear >= MaxWithdrawalsPerYear || amount > Balance * MaxWithdrawalPercent)
                 return false;
+
             if (base.Withdraw(amount))
             {
-                ThisYear++;
+                withdrawalCountThisYear++;
                 return true;
             }
             return false;
